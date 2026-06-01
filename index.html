@@ -822,7 +822,10 @@ function getHeroBg(type,cardioChoice){
 // Si la imagen de GitHub falla, remueve el background-image del div y deja el color visible.
 function heroBgHtml(hb){
   var safeImg=hb.img.replace(/'/g,'%27');
-  return '<div class="hero-bg" style="background-color:'+hb.bg+';background-image:url(\''+safeImg+'\');background-size:cover;background-position:center top"></div>';
+  var uid='hbg'+Math.random().toString(36).slice(2,7);
+  return '<div class="hero-bg" id="'+uid+'" style="background-color:'+hb.bg+';background-image:url(\''+safeImg+'\');background-size:cover;background-position:center top">'+
+    '<img src="'+safeImg+'" style="display:none" onerror="var el=document.getElementById(\''+uid+'\');if(el)el.style.backgroundImage=\'none\'">'+
+  '</div>';
 }
 // heroBgHtml maneja onerror internamente — no se necesita preload externo
 
@@ -922,11 +925,118 @@ function planchaIncludedInPesas(){
   var dia=getPesasDay();
   return dia==='A'||dia==='B'; // C no tiene plancha
 }
-var SUGS={
-  pesas:[{lbl:'Huevo + espinaca',f:'des',v:'Huevo revuelto con espinaca y jitomate'},{lbl:'Avena + plátano',f:'des',v:'Avena con leche, plátano y nueces'},{lbl:'Pechuga + arroz',f:'com',v:'Pechuga a la plancha, arroz y calabaza'},{lbl:'Pollo + camote',f:'com',v:'Pollo guisado con camote y brócoli'},{lbl:'Sopa de pollo',f:'cen',v:'Sopa de verduras con pollo desmenuzado'},{lbl:'Yogurt + nueces',f:'snk',v:'Yogurt natural con nueces'}],
-  cardio:[{lbl:'Huevo + aguacate',f:'des',v:'Huevo pochado con aguacate en tostada'},{lbl:'Fruta + granola',f:'des',v:'Fruta de temporada con granola y yogurt'},{lbl:'Pescado + frijol',f:'com',v:'Filete de pescado al horno con brócoli y frijoles'},{lbl:'Atún + ensalada',f:'com',v:'Ensalada grande con atún, jitomate y pepino'},{lbl:'Sopa de verdura',f:'cen',v:'Sopa de verduras con pollo desmenuzado'},{lbl:'Pepino + limón',f:'snk',v:'Pepino con limón y sal'}],
-  rest:[{lbl:'Huevo + frijoles',f:'des',v:'Huevos rancheros con frijoles de olla'},{lbl:'Fruta + yogurt',f:'des',v:'Fruta picada con yogurt y miel'},{lbl:'Pollo + verdura',f:'com',v:'Pollo guisado con verduras de temporada'},{lbl:'Quesadillas',f:'cen',v:'Quesadillas con frijoles'},{lbl:'Nueces',f:'snk',v:'Puño de nueces o almendras'}]
+var _SUGS_POOL={
+  pesas:{
+    des:[
+      {lbl:'Huevo + espinaca',v:'Huevo revuelto con espinaca y jitomate',prot:true},
+      {lbl:'Avena + plátano',v:'Avena con leche, plátano y nueces',prot:false},
+      {lbl:'Yogurt + granola',v:'Yogurt natural con granola y fruta',prot:true},
+      {lbl:'Chilaquiles + pollo',v:'Chilaquiles verdes con pechuga desmenuzada',prot:true},
+      {lbl:'Quesadilla + huevo',v:'Quesadilla con huevo y frijoles',prot:true}
+    ],
+    com:[
+      {lbl:'Pechuga + arroz',v:'Pechuga a la plancha, arroz y calabaza',prot:true},
+      {lbl:'Pollo + camote',v:'Pollo guisado con camote y brócoli',prot:true},
+      {lbl:'Res + frijoles',v:'Bistec a la plancha con frijoles y ensalada',prot:true},
+      {lbl:'Atún + pasta',v:'Pasta con atún, jitomate y aceite de oliva',prot:true},
+      {lbl:'Salmón + verdura',v:'Salmón al horno con espárragos y limón',prot:true}
+    ],
+    cen:[
+      {lbl:'Sopa de pollo',v:'Sopa de verduras con pollo desmenuzado',prot:true},
+      {lbl:'Huevo + frijoles',v:'Huevos estrellados con frijoles de olla',prot:true},
+      {lbl:'Quesadillas',v:'Quesadillas con frijoles y pico de gallo',prot:false},
+      {lbl:'Pechuga + ensalada',v:'Pechuga fría con ensalada verde',prot:true}
+    ],
+    snk:[
+      {lbl:'Yogurt + nueces',v:'Yogurt natural con nueces',prot:true},
+      {lbl:'Huevo cocido',v:'2 huevos cocidos con sal',prot:true},
+      {lbl:'Queso + manzana',v:'Queso panela con rodajas de manzana',prot:true},
+      {lbl:'Cacahuates',v:'Puño de cacahuates naturales',prot:false}
+    ]
+  },
+  cardio:{
+    des:[
+      {lbl:'Huevo + aguacate',v:'Huevo pochado con aguacate en tostada',prot:true},
+      {lbl:'Fruta + granola',v:'Fruta de temporada con granola y yogurt',prot:false},
+      {lbl:'Avena + proteína',v:'Avena con leche y plátano',prot:false},
+      {lbl:'Smoothie + nueces',v:'Smoothie de plátano con leche y nueces',prot:false}
+    ],
+    com:[
+      {lbl:'Pescado + frijol',v:'Filete de pescado al horno con brócoli y frijoles',prot:true},
+      {lbl:'Atún + ensalada',v:'Ensalada grande con atún, jitomate y pepino',prot:true},
+      {lbl:'Pollo + verdura',v:'Pollo al horno con verduras asadas',prot:true},
+      {lbl:'Sardinas + arroz',v:'Sardinas con arroz y ensalada',prot:true}
+    ],
+    cen:[
+      {lbl:'Sopa de verdura',v:'Sopa de verduras ligera con pollo',prot:true},
+      {lbl:'Ensalada + atún',v:'Ensalada verde con atún y aceite de oliva',prot:true},
+      {lbl:'Huevo + jitomate',v:'Huevos a la mexicana con tortilla',prot:true}
+    ],
+    snk:[
+      {lbl:'Pepino + limón',v:'Pepino con limón y sal',prot:false},
+      {lbl:'Fruta de temporada',v:'Fruta picada de temporada',prot:false},
+      {lbl:'Yogurt natural',v:'Yogurt natural sin azúcar',prot:true},
+      {lbl:'Jícama + chile',v:'Jícama con limón y chile',prot:false}
+    ]
+  },
+  rest:{
+    des:[
+      {lbl:'Huevo + frijoles',v:'Huevos rancheros con frijoles de olla',prot:true},
+      {lbl:'Fruta + yogurt',v:'Fruta picada con yogurt y miel',prot:true},
+      {lbl:'Hotcakes + fruta',v:'Hotcakes de avena con fruta',prot:false},
+      {lbl:'Chilaquiles',v:'Chilaquiles rojos con crema y queso',prot:false}
+    ],
+    com:[
+      {lbl:'Pollo + verdura',v:'Pollo guisado con verduras de temporada',prot:true},
+      {lbl:'Carne + frijoles',v:'Bistec con frijoles y arroz',prot:true},
+      {lbl:'Pozole ligero',v:'Pozole de pollo con tostadas',prot:true},
+      {lbl:'Lentejas',v:'Lentejas guisadas con zanahoria y espinaca',prot:true}
+    ],
+    cen:[
+      {lbl:'Quesadillas',v:'Quesadillas con frijoles',prot:false},
+      {lbl:'Sopa + tortilla',v:'Sopa de fideos con tortilla',prot:false},
+      {lbl:'Huevo + frijoles',v:'Huevos con frijoles de olla',prot:true}
+    ],
+    snk:[
+      {lbl:'Nueces',v:'Puño de nueces o almendras',prot:false},
+      {lbl:'Fruta',v:'Fruta de temporada',prot:false},
+      {lbl:'Palomitas naturales',v:'Palomitas sin mantequilla',prot:false}
+    ]
+  }
 };
+
+function getSugs(type, entry){
+  var pool=_SUGS_POOL[type]||_SUGS_POOL.rest;
+  var des=entry?entry.des||'':'';
+  var com=entry?entry.com||'':'';
+  var cen=entry?entry.cen||'':'';
+  var snk=entry?entry.snk||'':'';
+
+  // Detectar proteínas ya consumidas
+  var consumed=[des,com,cen,snk].join(' ').toLowerCase();
+  var usedProts=[];
+  ['pollo','pescado','huevo','atun','frijol','queso','yogurt','carne','salmon','sardina','res','pechuga'].forEach(function(p){
+    if(consumed.indexOf(p)>=0)usedProts.push(p);
+  });
+
+  var result=[];
+  var fields=[['des',des],['com',com],['cen',cen],['snk',snk]];
+  fields.forEach(function(pair){
+    var f=pair[0],val=pair[1];
+    if(val)return; // ya registrado, no sugiere
+    var opts=(pool[f]||[]).filter(function(s){
+      // Filtra si el label menciona una proteína ya consumida
+      if(!s.prot)return true;
+      return!usedProts.some(function(p){return s.v.toLowerCase().indexOf(p)>=0;});
+    });
+    if(opts.length>0){
+      // Toma hasta 2 sugerencias por campo
+      var pick=opts.slice(0,2);
+      pick.forEach(function(s){result.push({lbl:s.lbl,f:f,v:s.v});});
+    }
+  });
+  return result;
+}
 var TOASTS={
   plancha:['El core no miente. Bien.','3 rondas en la noche. No todo el mundo hace eso.','Terminaste el día moviéndote.','La constancia se ve así: sin drama, todos los días.'],
   pesas:['El músculo crece mientras duermes. Ya hiciste tu parte.','No se improvisa la fuerza. Se acumula. Sumaste.','Sesión completa. Sin atajos.','Bien hecho. El siguiente tú lo va a agradecer.'],
@@ -1403,6 +1513,8 @@ function renderHero(){
   var bs=document.getElementById('hbtn-start');if(bs)bs.onclick=function(){
     if(nextItem&&nextItem.type==='pesas'){
       openSession(getPesasDay());
+    } else if(nextItem&&nextItem.id==='plancha'){
+      openPlanchaSession();
     } else {
       markStart(_id);
     }
@@ -2978,7 +3090,8 @@ function renderFood(){
   var prot=meals.filter(hasProt).length;
   var protTxt=prot>=3?'Proteína alta':prot>=2?'Proteína ok':prot===1?'Proteína baja':'Sin proteína';
   var type=baseDayType();
-  var sugs=SUGS[type]||SUGS.rest;
+  var sugs=getSugs(type,entry);
+  var allDone=des&&com&&cen&&snk;
 
   var fh=document.getElementById('food-hdr');
   fh.innerHTML='<div class="food-stats">'+
@@ -2986,13 +3099,19 @@ function renderFood(){
     '<span class="fstat-label">&nbsp;/ 4 comidas</span>'+
     '<span class="fstat-prot'+(prot>=2?' good':'')+'">'+protTxt+'</span>'+
   '</div>'+
-  '<div class="sug-tags">'+sugs.map(function(s,i){
-    return'<div class="sug-tag" data-si="'+i+'"><span class="sug-tag-field">'+{des:'Desayuno',com:'Comida',cen:'Cena',snk:'Snack'}[s.f]+'</span>'+s.lbl+'</div>';
-  }).join('')+'</div>';
+  (allDone
+    ? '<div style="padding:8px 1.25rem 4px;font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--c-text3)">Día completo ✓</div>'
+    : sugs.length>0
+      ? '<div class="sug-tags">'+sugs.map(function(s,i){
+          return'<div class="sug-tag" data-si="'+i+'"><span class="sug-tag-field">'+{des:'Desayuno',com:'Comida',cen:'Cena',snk:'Snack'}[s.f]+'</span>'+s.lbl+'</div>';
+        }).join('')+'</div>'
+      : '');
 
-  fh.querySelector('.sug-tags').onclick=function(e){
-    var t=e.target.closest('[data-si]');if(t)applySug(sugs[parseInt(t.dataset.si)]);
-  };
+  if(!allDone&&sugs.length>0){
+    fh.querySelector('.sug-tags').onclick=function(e){
+      var t=e.target.closest('[data-si]');if(t)applySug(sugs[parseInt(t.dataset.si)]);
+    };
+  }
 
   var fb=document.getElementById('food-body');
   var flds=[['des','Desayuno',des],['com','Comida',com],['cen','Cena',cen],['snk','Snack',snk]];
@@ -3091,11 +3210,11 @@ function renderHist(){
           body+='<div class="hist-act-row" style="padding-left:12px"><span class="hist-act-name" style="color:var(--c-text3)">'+cLog.series.join(' + ')+' vueltas · '+cLog.distancia+'m</span></div>';
         }
       }
-      if(fe){
+      if(fe||isOpen){
         body+='<div class="hist-sect-lbl" style="margin-top:10px">Comida</div>';
         var flds2=[['des','Desayuno'],['com','Comida'],['cen','Cena'],['snk','Snack']];
         body+=flds2.map(function(f){
-          var val=(fe[f[0]]||'').replace(/</g,'&lt;');
+          var val=fe?(fe[f[0]]||'').replace(/</g,'&lt;'):'';
           return'<div class="hist-food-row"><div class="hist-food-key">'+f[1]+'</div><input class="hist-food-inp" data-dk="'+dk+'" data-field="'+f[0]+'" value="'+val+'" placeholder="—"></div>';
         }).join('');
         body+='<button class="hist-save-btn" data-savedk="'+dk+'">Guardar cambios</button>';
@@ -3117,11 +3236,15 @@ function renderHist(){
     if(save){
       var dk2=save.dataset.savedk;
       var idx=foodLog.findIndex(function(x){return x.date===dk2;});
+      var fields={};
+      hl.querySelectorAll('[data-dk="'+dk2+'"][data-field]').forEach(function(inp){fields[inp.dataset.field]=inp.value.trim();});
       if(idx>=0){
-        hl.querySelectorAll('[data-dk="'+dk2+'"][data-field]').forEach(function(inp){foodLog[idx][inp.dataset.field]=inp.value.trim();});
-        localStorage.setItem('mv_food',JSON.stringify(foodLog));
-        openHistDay=null;renderHist();
+        Object.assign(foodLog[idx],fields);
+      } else {
+        foodLog.push({date:dk2,des:fields.des||'',com:fields.com||'',cen:fields.cen||'',snk:fields.snk||''});
       }
+      localStorage.setItem('mv_food',JSON.stringify(foodLog));
+      openHistDay=null;renderHist();
       return;
     }
     var hdr=e.target.closest('.hist-day-hdr');
@@ -3232,6 +3355,63 @@ function buildSessionSteps(dia){
     }
   });
   return steps;
+}
+
+function openPlanchaSession(){
+  var exercises=[
+    {id:'lagartijas',name:'Lagartijas',sets:3,reps:'8-12',restSec:60,
+     desc:'Manos al ancho de hombros, codos a 45°. Baja en 2 seg, sube en 1. Si no llegas a 8, apoya rodillas.'},
+    {id:'plancha_a',name:'Plancha',sets:3,reps:'20 seg',restSec:30,
+     desc:'Cuerpo recto de cabeza a talones. Si la cadera cae, para. Progresión: +5 seg cuando se sienta fácil.'},
+    {id:'plancha_lat',name:'Plancha lateral',sets:3,reps:'20 seg c/lado',restSec:30,
+     desc:'Cadera arriba, no dejes que caiga. Cuerpo en línea recta. Empieza por el lado más débil.'}
+  ];
+  var steps=[];
+  exercises.forEach(function(ex,ei){
+    for(var s=1;s<=ex.sets;s++){
+      steps.push({type:'exercise',ex:ex,serie:s,totalSeries:ex.sets,ei:ei});
+      var isLastSerie=s===ex.sets;
+      var isLastEx=ei===exercises.length-1;
+      if(!(isLastSerie&&isLastEx)){
+        steps.push({type:'rest',ex:ex,serie:s,restSec:ex.restSec,next:null});
+      }
+    }
+  });
+  steps.forEach(function(step,i){
+    if(step.type==='rest'){
+      var nextEx=steps.slice(i+1).find(function(s){return s.type==='exercise';});
+      step.next=nextEx?nextEx.ex:null;
+    }
+  });
+  _sess.exercises=steps;
+  _sess.step=-1;
+  _sess.startTime=Date.now();
+  _sess.totalSeries=exercises.reduce(function(acc,ex){return acc+ex.sets;},0);
+  _sess.seriesDone=0;
+
+  document.getElementById('ov-title').textContent='Plancha + Lagartijas';
+  document.getElementById('ov-sub').textContent='Core · '+exercises.length+' ejercicios';
+  var list=document.getElementById('ov-list');
+  list.innerHTML=exercises.map(function(ex,i){
+    var detail=ex.sets+'×'+ex.reps;
+    return'<div class="session-ov-item">'+
+      '<div class="session-ov-num">'+(i+1)+'</div>'+
+      '<div style="flex:1"><div class="session-ov-name">'+ex.name+'</div></div>'+
+      '<div class="session-ov-detail">'+detail+'</div>'+
+    '</div>';
+  }).join('');
+
+  showSessionPhase('overview');
+  document.getElementById('session-bar').style.width='0%';
+  document.getElementById('session-counter').textContent='';
+  document.getElementById('session-cta').textContent='Empezar';
+  document.getElementById('session-cta').disabled=false;
+  document.getElementById('session-cta-sec').style.display='none';
+  document.getElementById('session-exit').onclick=function(){closeSession();};
+  document.getElementById('session-cta').onclick=function(){advanceSession();};
+
+  if(navigator.wakeLock){navigator.wakeLock.request('screen').catch(function(){});}
+  document.getElementById('session-screen').classList.add('active');
 }
 
 function openSession(dia){
