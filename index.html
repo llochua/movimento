@@ -308,7 +308,7 @@ button{font-family:'Barlow',sans-serif;cursor:pointer;}
 .aj-toggle input{opacity:0;width:0;height:0;position:absolute;}
 .aj-toggle-slider{position:absolute;inset:0;background:var(--c-border);border-radius:14px;transition:background 0.2s;cursor:pointer;}
 .aj-toggle input:checked+.aj-toggle-slider{background:#0D0D0D;}
-[data-theme="dark"] .aj-toggle input:checked+.aj-toggle-slider{background:#F5F5F3;}
+[data-theme="dark"] .aj-toggle input:checked+.aj-toggle-slider{background:var(--c-lime);}
 .aj-toggle-slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
 .aj-toggle input:checked+.aj-toggle-slider::before{transform:translateX(20px);}
 [data-theme="dark"] .aj-toggle input:checked+.aj-toggle-slider::before{background:#0D0D0D;}
@@ -329,6 +329,8 @@ button{font-family:'Barlow',sans-serif;cursor:pointer;}
 [data-theme="dark"] .aj-special-chip.sel .aj-sc-sub{color:rgba(208,255,0,0.5);}
 /* Saved flash */
 .aj-saved{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--c-lime-dk);opacity:0;transition:opacity 0.3s;padding:0 1.25rem 16px;text-align:right;}
+.aj-save-btn{width:100%;padding:15px;border-radius:var(--rs);border:none;background:#0D0D0D;color:#FFFCFC;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:opacity 0.12s;}
+[data-theme="dark"] .aj-save-btn{background:var(--c-lime);color:#0D0D0D;}
 .aj-saved.show{opacity:1;}
 
 /* ── FOOD ────────────────────────────────────────────────── */
@@ -1137,7 +1139,8 @@ function buildSchedule(){
       var co2=CARDIO[eid];
       if(co2){
         var et=getExtraTime(eid,13*60);
-        items.push({id:'extra_'+eid,t:et,name:co2.name+' (extra)',desc:co2.shortDesc||'Extra · cardio',plan:co2.desc,type:'cardio',removable:true,extraId:eid});
+        var hbExtra=HBG[eid]||null;
+        items.push({id:'extra_'+eid,t:et,name:co2.name+' (extra)',desc:co2.shortDesc||'Extra · cardio',plan:co2.desc,type:'cardio',removable:true,extraId:eid,img:hbExtra?hbExtra.img:null});
       }
       if(eid==='cuerda'){
         var et2=getExtraTime('cuerda',18*60);
@@ -2773,7 +2776,7 @@ function renderAjustes(){
       '</div>'+
     '</div>'+
     '<div style="padding:1.25rem 1.25rem 0.5rem">'+
-      '<button onclick="ajConfirmSave()" style="width:100%;padding:15px;border-radius:var(--rs);border:none;background:var(--c-text);color:var(--c-bg);font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:opacity 0.12s" onmousedown="this.style.opacity=\'0.8\'" onmouseup="this.style.opacity=\'1\'">Guardar cambios</button>'+
+      '<button onclick="ajConfirmSave()" class="aj-save-btn" onmousedown="this.style.opacity=\'0.8\'" onmouseup="this.style.opacity=\'1\'">Guardar cambios</button>'+
     '</div>'+
     '<div class="aj-saved" id="aj-saved">✓ Guardado</div>'+
     '<div style="padding:1.25rem 1.25rem 0.5rem">'+
