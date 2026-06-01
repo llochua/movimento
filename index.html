@@ -2775,7 +2775,15 @@ function renderAjustes(){
     '<div style="padding:1.25rem 1.25rem 0.5rem">'+
       '<button onclick="ajConfirmSave()" style="width:100%;padding:15px;border-radius:var(--rs);border:none;background:var(--c-text);color:var(--c-bg);font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:opacity 0.12s" onmousedown="this.style.opacity=\'0.8\'" onmouseup="this.style.opacity=\'1\'">Guardar cambios</button>'+
     '</div>'+
-    '<div class="aj-saved" id="aj-saved">✓ Guardado</div>';
+    '<div class="aj-saved" id="aj-saved">✓ Guardado</div>'+
+    '<div style="padding:1.25rem 1.25rem 0.5rem">'+
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--c-text);opacity:0.4;margin-bottom:0.75rem">Datos</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">'+
+        '<button onclick="exportarDatos()" style="padding:13px;border-radius:var(--rs);border:1.5px solid var(--c-text);background:transparent;color:var(--c-text);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;opacity:0.8">⬇ Exportar</button>'+
+        '<button onclick="document.getElementById(\'mv-import-input\').click()" style="padding:13px;border-radius:var(--rs);border:1.5px solid var(--c-text);background:transparent;color:var(--c-text);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;opacity:0.8">⬆ Restaurar</button>'+
+      '</div>'+
+      '<input type="file" id="mv-import-input" accept=".json" style="display:none" onchange="importarDatos(this)">'+
+    '</div>';
 
   // Chips día especial — solo actualiza pending, NO guarda
   var chipsWrap=document.getElementById('aj-special-chips');
@@ -2921,6 +2929,39 @@ function ajUpdateLock(){
   if(caTog&&caInp){caInp.disabled=!caTog.checked;caInp.style.opacity=caTog.checked?'1':'0.35';}
 }
 // ajConfirmSave es el único punto de guardado en Ajustes
+
+// ── EXPORTAR / IMPORTAR ───────────────────────────────────────────────
+function exportarDatos(){
+  var data={};
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    data[k]=localStorage.getItem(k);
+  }
+  var json=JSON.stringify(data,null,2);
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  a.download='movimento_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function importarDatos(input){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      var keys=Object.keys(data);
+      keys.forEach(function(k){localStorage.setItem(k,data[k]);});
+      input.value='';
+      alert('✓ '+keys.length+' datos restaurados. La app se va a recargar.');
+      location.reload();
+    }catch(err){
+      alert('Error al leer el archivo. Asegúrate de usar un backup válido de Movimento.');
+    }
+  };
+  reader.readAsText(file);
+}
 
 // ── FOOD ──────────────────────────────────────────────────────────────
 var PWORDS=['pollo','pescado','huevo','atun','frijol','queso','yogurt','carne','salmon','sardina','leguminosa','res','pechuga'];
